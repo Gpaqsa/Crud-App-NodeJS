@@ -1,5 +1,4 @@
 const sqlite3 = require("sqlite3").verbose();
-// Connect to the database
 const db = new sqlite3.Database("./Database/blog.db", (err) => {
   if (err) {
     console.error("Error opening database:", err.message);
@@ -8,49 +7,65 @@ const db = new sqlite3.Database("./Database/blog.db", (err) => {
   }
 });
 
-// მომხმარებლების ცხრილის შექმნა
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    email Text UNIQUE,
-    password TEXT
-  )
-`);
+// Create tables if they do not exist
+const createTables = () => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
+    )
+  `);
 
-// პოსტების ცხრილის შექმნა
-db.run(`
-  CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    content TEXT,
-    userId INTEGER,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(userId) REFERENCES users(id)
-  )
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      userId INTEGER,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES users(id)
+    )
+  `);
 
-// კომენტარების ცხრილის შექმნა
-db.run(`
-  CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    content TEXT,
-    postId INTEGER,
-    userId INTEGER,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(postId) REFERENCES posts(id),
-    FOREIGN KEY(userId) REFERENCES users(id)
-  )
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      content TEXT NOT NULL,
+      postId INTEGER,
+      userId INTEGER,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(postId) REFERENCES posts(id),
+      FOREIGN KEY(userId) REFERENCES users(id)
+    )
+  `);
+};
+
+createTables();
 
 const insertUser = (username, email, password) => {
-  const sql = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-  db.run(sql, [username, email, password], function (err) {
+  // First check if the email already exists
+  const checkEmailSql = `SELECT id FROM users WHERE email = ?`;
+  db.get(checkEmailSql, [email], (err, row) => {
     if (err) {
-      console.error("Error inserting user:", err.message);
-    } else {
-      console.log(`User added with ID ${this.lastID}`);
+      console.error("Error checking email:", err.message);
+      return;
     }
+    if (row) {
+      console.log("Email already exists. User not added.");
+      return;
+    }
+
+    // Email does not exist, proceed with the insertion
+    const sql = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
+    db.run(sql, [username, email, password], function (err) {
+      if (err) {
+        console.error("Error inserting user:", err.message);
+      } else {
+        console.log(`User added with ID ${this.lastID}`);
+      }
+    });
   });
 };
 
