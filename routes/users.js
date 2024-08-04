@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const db = require("../db");
 const router = express.Router();
+const { registerUser } = require("../controllers/userController");
 
 const SECRET_KEY = "6Dz1u:H'P;GM/B,";
 
