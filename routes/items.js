@@ -11,7 +11,7 @@ const db = new sqlite3.Database("./crud-app.db", (err) => {
   }
 });
 
-// Endpoint to create a new item
+// Create a new item
 router.post("/items", (req, res) => {
   const { name, description, quantity } = req.body;
   db.run(
@@ -26,7 +26,7 @@ router.post("/items", (req, res) => {
   );
 });
 
-// Endpoint to get all items
+// Get all items
 router.get("/items", (req, res) => {
   db.all("SELECT * FROM items", [], (err, rows) => {
     if (err) {
@@ -36,7 +36,7 @@ router.get("/items", (req, res) => {
   });
 });
 
-// Endpoint to get a single item by id
+// Get a single item by id
 router.get("/items/:id", (req, res) => {
   const { id } = req.params;
   db.get("SELECT * FROM items WHERE id = ?", [id], (err, row) => {
@@ -47,7 +47,7 @@ router.get("/items/:id", (req, res) => {
   });
 });
 
-// Endpoint to update an item
+// Update an item
 router.put("/items/:id", (req, res) => {
   const { name, description, quantity } = req.body;
   const { id } = req.params;
@@ -63,7 +63,7 @@ router.put("/items/:id", (req, res) => {
   );
 });
 
-// Endpoint to delete an item
+// Delete an item
 router.delete("/items/:id", (req, res) => {
   const { id } = req.params;
   db.run("DELETE FROM items WHERE id = ?", [id], function (err) {
