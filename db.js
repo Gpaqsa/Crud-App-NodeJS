@@ -4,6 +4,7 @@ const db = new sqlite3.Database("./Database/blog.db", (err) => {
     console.error("Error opening database:", err.message);
   } else {
     console.log("Connected to the SQLite database.");
+    createTables();
   }
 });
 
@@ -42,75 +43,4 @@ const createTables = () => {
   `);
 };
 
-createTables();
-
-const insertUser = (username, email, password) => {
-  // First check if the email already exists
-  const checkEmailSql = `SELECT id FROM users WHERE email = ?`;
-  db.get(checkEmailSql, [email], (err, row) => {
-    if (err) {
-      console.error("Error checking email:", err.message);
-      return;
-    }
-    if (row) {
-      console.log("Email already exists. User not added.");
-      return;
-    }
-
-    // Email does not exist, proceed with the insertion
-    const sql = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-    db.run(sql, [username, email, password], function (err) {
-      if (err) {
-        console.error("Error inserting user:", err.message);
-      } else {
-        console.log(`User added with ID ${this.lastID}`);
-      }
-    });
-  });
-};
-
-const insertPost = (title, content, userId) => {
-  const sql = `INSERT INTO posts (title, content, userId) VALUES (?, ?, ?)`;
-  db.run(sql, [title, content, userId], function (err) {
-    if (err) {
-      console.error("Error inserting post:", err.message);
-    } else {
-      console.log(`Post added with ID ${this.lastID}`);
-    }
-  });
-};
-
-const insertComment = (content, postId, userId) => {
-  const sql = `INSERT INTO comments (content, postId, userId) VALUES (?, ?, ?)`;
-  db.run(sql, [content, postId, userId], function (err) {
-    if (err) {
-      console.error("Error inserting comment:", err.message);
-    } else {
-      console.log(`Comment added with ID ${this.lastID}`);
-    }
-  });
-};
-
-// Example usage
-insertUser("new_user", "new_user@example.com", "newpassword");
-insertPost("New Post Title", "Content of the new post", 1);
-insertComment("This is a comment", 1, 2);
-
-// Close the database connection when done
-const closeConnection = () => {
-  db.close((err) => {
-    if (err) {
-      console.error("Error closing database:", err.message);
-    } else {
-      console.log("Database connection closed.");
-    }
-  });
-};
-
-module.exports = {
-  db,
-  insertUser,
-  insertPost,
-  insertComment,
-  closeConnection,
-};
+module.exports = db;

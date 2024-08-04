@@ -10,7 +10,10 @@ app.use(express.json());
 app.use(cors());
 
 // Use routes
-app.use("/api/users", userRoutes);
+
+// Routes
+app.use("/api/user", userRoutes);
+
 app.use("/api/posts", postRoutes);
 
 // Root route

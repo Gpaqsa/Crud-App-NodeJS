@@ -4,7 +4,6 @@ const db = require("../db");
 const router = express.Router();
 const { registerUser } = require("../controllers/userController");
 
-const SECRET_KEY = "6Dz1u:H'P;GM/B,";
 
 // მომხმარებლის რეგისტრაცია
 router.post("/register", registerUser);
@@ -39,7 +38,6 @@ router.post("/login", async (req, res) => {
             .status(400)
             .json({ message: "Invalid username or password" });
         }
-
         const authToken = token({ id: user.id, username: user.username });
 
         res.json({ token: authToken });

@@ -1,45 +1,73 @@
 const express = require("express");
-const db = require("../db");
-const authenticateToken = require("../middleware/auth");
 const router = express.Router();
+const db = require("../db");
 
-// პოსტების შექმნა
-router.post("/", authenticateToken, (req, res) => {
-  const { title, content } = req.body;
-  const userId = req.user.id;
-
-  // ვალიდაციის დამატება
-  if (!title || !content) {
-    return res.status(400).json({ message: "Title and content are required" });
-  }
-
-  db.run(
-    "INSERT INTO posts (title, content, userId) VALUES (?, ?, ?)",
-    [title, content, userId],
-    function (err) {
-      if (err) {
-        console.error("Error inserting post:", err.message);
-        return res.status(500).json({ message: "Failed to create post" });
-      }
-      res.status(201).json({
-        id: this.lastID,
-        title,
-        content,
-        userId,
-        createdAt: new Date().toISOString(),
-      });
+// Create a new post
+router.post("/posts", (req, res) => {
+  const { title, content, userId } = req.body;
+  const sql = `INSERT INTO posts (title, content, userId) VALUES (?, ?, ?)`;
+  db.run(sql, [title, content, userId], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
     }
-  );
+    res.status(201).json({ id: this.lastID });
+  });
 });
 
-// ყველა პოსტის მიღება
-router.get("/", (req, res) => {
-  db.all("SELECT * FROM posts", [], (err, rows) => {
+// Get all posts
+router.get("/posts", (req, res) => {
+  const sql = `SELECT * FROM posts`;
+  db.all(sql, [], (err, rows) => {
     if (err) {
-      console.error("Error fetching posts:", err.message);
-      return res.status(500).json({ message: "Failed to retrieve posts" });
+      return res.status(500).json({ error: err.message });
     }
     res.json(rows);
+  });
+});
+
+// Get a single post by ID
+router.get("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = `SELECT * FROM posts WHERE id = ?`;
+  db.get(sql, [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!row) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json(row);
+  });
+});
+
+// Update a post by ID
+router.put("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  const { title, content, userId } = req.body;
+  const sql = `UPDATE posts SET title = ?, content = ?, userId = ? WHERE id = ?`;
+  db.run(sql, [title, content, userId, id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json({ message: "Post updated" });
+  });
+});
+
+// Delete a post by ID
+router.delete("/posts/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = `DELETE FROM posts WHERE id = ?`;
+  db.run(sql, [id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    res.json({ message: "Post deleted" });
   });
 });
 
