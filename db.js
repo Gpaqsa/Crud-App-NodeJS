@@ -42,5 +42,5 @@ const createTables = () => {
     )
   `);
 };
-
+db.close();
 module.exports = db;

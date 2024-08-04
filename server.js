@@ -3,6 +3,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/users");
 const postRoutes = require("./routes/posts");
 
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 // Middleware
@@ -12,7 +13,8 @@ app.use(cors());
 // Use routes
 
 // Routes
-app.use("/api/user", userRoutes);
+app.use("/api/users", userRoutes);
+
 
 app.use("/api/posts", postRoutes);
 
