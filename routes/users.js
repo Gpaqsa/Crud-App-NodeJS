@@ -1,41 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const db = require("../db");
 const router = express.Router();
 
-const SECRET_KEY = "your_secret_key"; // გამოიყენეთ უსაფრთხო საიდუმლო გასაღები
+const SECRET_KEY = "6Dz1u:H'P;GM/B,";
 
 // მომხმარებლის რეგისტრაცია
-router.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required" });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    db.run(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, hashedPassword],
-      function (err) {
-        if (err) {
-          if (err.message.includes("UNIQUE constraint failed")) {
-            return res.status(400).json({ message: "Username already exists" });
-          }
-          return res.status(500).json({ message: "Failed to register user" });
-        }
-        res.status(201).json({ message: "User registered successfully" });
-      }
-    );
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+router.post("/register", registerUser);
 
 // მომხმარებლის შესვლა
 router.post("/login", async (req, res) => {
@@ -68,15 +39,9 @@ router.post("/login", async (req, res) => {
             .json({ message: "Invalid username or password" });
         }
 
-        const token = jwt.sign(
-          { id: user.id, username: user.username },
-          SECRET_KEY,
-          {
-            expiresIn: "1h",
-          }
-        );
+        const authToken = token({ id: user.id, username: user.username });
 
-        res.json({ token });
+        res.json({ token: authToken });
       }
     );
   } catch (error) {

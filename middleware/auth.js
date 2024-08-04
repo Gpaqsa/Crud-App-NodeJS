@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "secret_key";
+const SECRET_KEY = "6Dz1u:H'P;GM/B,";
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
